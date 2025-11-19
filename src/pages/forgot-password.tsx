@@ -150,14 +150,24 @@ const ForgotPassword: NextPageWithLayout = () => {
                   {success ? (
                     <>
                       <Alert severity="success" sx={{ mb: 3 }}>
-                        Password reset link has been sent to your email!
+                        Password reset code has been sent to your email!
                       </Alert>
                       <Typography variant="body2" sx={{ mb: 3 }}>
-                        Please check your inbox and follow the instructions to reset your password. If you don&apos;t see the email, check your spam folder.
+                        Please check your inbox for a 6-digit verification code. If you don&apos;t see the email, check your spam folder.
                       </Typography>
-                      <Link href="/login" passHref>
+                      <Link href="/reset-password" passHref>
                         <StyledButton
                           variant="contained"
+                          color="primary"
+                          size="large"
+                          sx={{ width: '100%', mt: 2 }}
+                        >
+                          Enter Reset Code
+                        </StyledButton>
+                      </Link>
+                      <Link href="/login" passHref>
+                        <StyledButton
+                          variant="outlined"
                           color="primary"
                           size="large"
                           sx={{ width: '100%', mt: 2 }}

@@ -62,10 +62,25 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
   const navBoxStyles = {
     display: 'flex', 
     flexDirection: { xs: 'column', md: 'row' },
-    alignItems: 'center',
+    alignItems: isMobile ? 'flex-start' : 'center',
     width: isMobile ? '100%' : 'auto',
     mt: isMobile ? 2 : 0,
-    gap: isMobile ? 3 : 0
+    gap: isMobile ? 2 : 0,
+    '& > *': isMobile ? {
+      width: '100%',
+      textAlign: 'left',
+      animation: 'slideIn 0.3s ease-out',
+      '@keyframes slideIn': {
+        from: {
+          opacity: 0,
+          transform: 'translateX(20px)',
+        },
+        to: {
+          opacity: 1,
+          transform: 'translateX(0)',
+        },
+      },
+    } : {},
   };
   
   // If on dashboard, profile, or change password, only show these navigation links
@@ -79,37 +94,32 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
             position: 'relative',
             color: router.pathname === '/dashboard' ? activeColor : textColor,
             cursor: 'pointer',
-            fontWeight: 600,
+            fontWeight: router.pathname === '/dashboard' ? 700 : 600,
             display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            px: { xs: 0, md: 3 },
-            mb: { xs: 3, md: 0 },
-            fontSize: { xs: '1.2rem', md: 'inherit' },
+            justifyContent: { xs: 'flex-start', md: 'center' },
+            px: { xs: 2, md: 3 },
+            py: { xs: 1.5, md: 0 },
+            mb: { xs: 1, md: 0 },
+            fontSize: { xs: '1.1rem', md: 'inherit' },
+            borderRadius: { xs: 2, md: 0 },
+            width: { xs: '100%', md: 'auto' },
             textDecoration: 'none',
             background: 'none',
             border: 'none',
-            '& > div': { display: 'none' },
+            transition: 'all 0.2s ease',
+            ...(router.pathname === '/dashboard' && {
+              backgroundColor: { xs: isDashboardTheme ? 'rgba(76, 81, 191, 0.08)' : 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+              borderLeft: { xs: `3px solid ${activeColor}`, md: 'none' },
+              pl: { xs: 2.5, md: 3 },
+            }),
             '&:hover': {
               color: activeColor,
-              '&>div': {
-                display: 'block',
-              },
+              backgroundColor: { xs: isDashboardTheme ? 'rgba(76, 81, 191, 0.08)' : 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+              transform: { xs: 'none', md: 'translateY(-2px)' },
             },
           }}
         >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 12,
-              transform: 'rotate(3deg)',
-              '& img': { width: 44, height: 'auto' },
-              display: router.pathname === '/dashboard' ? 'block' : 'none',
-            }}
-          >
-            {/* eslint-disable-next-line */}
-            <img src="/images/headline-curve.svg" alt="Headline curve" />
-          </Box>
           Dashboard
         </Box>
         
@@ -120,36 +130,31 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
               position: 'relative',
               color: router.pathname === '/profile' ? activeColor : textColor,
               cursor: 'pointer',
-              fontWeight: 600,
+              fontWeight: router.pathname === '/profile' ? 700 : 600,
               display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              px: { xs: 0, md: 3 },
-              mb: { xs: 3, md: 0 },
-              fontSize: { xs: '1.2rem', md: 'inherit' },
+              justifyContent: { xs: 'flex-start', md: 'center' },
+              px: { xs: 2, md: 3 },
+              py: { xs: 1.5, md: 0 },
+              mb: { xs: 1, md: 0 },
+              fontSize: { xs: '1.1rem', md: 'inherit' },
+              borderRadius: { xs: 2, md: 0 },
+              width: { xs: '100%', md: 'auto' },
               textDecoration: 'none',
-              '& > div': { display: 'none' },
+              transition: 'all 0.2s ease',
+              ...(router.pathname === '/profile' && {
+                backgroundColor: { xs: isDashboardTheme ? 'rgba(76, 81, 191, 0.08)' : 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                borderLeft: { xs: `3px solid ${activeColor}`, md: 'none' },
+                pl: { xs: 2.5, md: 3 },
+              }),
               '&:hover': {
                 color: activeColor,
-                '&>div': {
-                  display: 'block',
-                },
+                backgroundColor: { xs: isDashboardTheme ? 'rgba(76, 81, 191, 0.08)' : 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                transform: { xs: 'none', md: 'translateY(-2px)' },
               },
             }}
             onClick={handleLinkClick}
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 12,
-                transform: 'rotate(3deg)',
-                '& img': { width: 44, height: 'auto' },
-                display: router.pathname === '/profile' ? 'block' : 'none',
-              }}
-            >
-              {/* eslint-disable-next-line */}
-              <img src="/images/headline-curve.svg" alt="Headline curve" />
-            </Box>
             My Profile
           </Box>
         </Link>
@@ -161,36 +166,31 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
               position: 'relative',
               color: router.pathname === '/change-password' ? activeColor : textColor,
               cursor: 'pointer',
-              fontWeight: 600,
+              fontWeight: router.pathname === '/change-password' ? 700 : 600,
               display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              px: { xs: 0, md: 3 },
-              mb: { xs: 3, md: 0 },
-              fontSize: { xs: '1.2rem', md: 'inherit' },
+              justifyContent: { xs: 'flex-start', md: 'center' },
+              px: { xs: 2, md: 3 },
+              py: { xs: 1.5, md: 0 },
+              mb: { xs: 1, md: 0 },
+              fontSize: { xs: '1.1rem', md: 'inherit' },
+              borderRadius: { xs: 2, md: 0 },
+              width: { xs: '100%', md: 'auto' },
               textDecoration: 'none',
-              '& > div': { display: 'none' },
+              transition: 'all 0.2s ease',
+              ...(router.pathname === '/change-password' && {
+                backgroundColor: { xs: isDashboardTheme ? 'rgba(76, 81, 191, 0.08)' : 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                borderLeft: { xs: `3px solid ${activeColor}`, md: 'none' },
+                pl: { xs: 2.5, md: 3 },
+              }),
               '&:hover': {
                 color: activeColor,
-                '&>div': {
-                  display: 'block',
-                },
+                backgroundColor: { xs: isDashboardTheme ? 'rgba(76, 81, 191, 0.08)' : 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                transform: { xs: 'none', md: 'translateY(-2px)' },
               },
             }}
             onClick={handleLinkClick}
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 12,
-                transform: 'rotate(3deg)',
-                '& img': { width: 44, height: 'auto' },
-                display: router.pathname === '/change-password' ? 'block' : 'none',
-              }}
-            >
-              {/* eslint-disable-next-line */}
-              <img src="/images/headline-curve.svg" alt="Headline curve" />
-            </Box>
             Change Password
           </Box>
         </Link>
@@ -246,32 +246,23 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
                   fontWeight: 600,
                   display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  px: { xs: 0, md: 3 },
-                  mb: { xs: 3, md: 0 },
-                  fontSize: { xs: '1.2rem', md: 'inherit' },
+                  justifyContent: { xs: 'flex-start', md: 'center' },
+                  px: { xs: 2, md: 3 },
+                  py: { xs: 1.5, md: 0 },
+                  mb: { xs: 1, md: 0 },
+                  fontSize: { xs: '1.1rem', md: 'inherit' },
+                  borderRadius: { xs: 2, md: 0 },
+                  width: { xs: '100%', md: 'auto' },
                   textDecoration: 'none',
-                  '& > div': { display: 'none' },
+                  transition: 'all 0.2s ease',
                   '&:hover': {
                     color: 'primary.main',
-                    '&>div': {
-                      display: 'block',
-                    },
+                    backgroundColor: { xs: 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                    transform: { xs: 'none', md: 'translateY(-2px)' },
                   },
                 }}
                 onClick={handleLinkClick}
               >
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 12,
-                    transform: 'rotate(3deg)',
-                    '& img': { width: 44, height: 'auto' },
-                  }}
-                >
-                  {/* eslint-disable-next-line */}
-                  <img src="/images/headline-curve.svg" alt="Headline curve" />
-                </Box>
                 {label}
               </Box>
             </Link>
@@ -288,36 +279,32 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
                   position: 'relative',
                   color: router.pathname === `/${destination}` ? 'primary.main' : 'text.disabled',
                   cursor: 'pointer',
-                  fontWeight: 600,
+                  fontWeight: router.pathname === `/${destination}` ? 700 : 600,
                   display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  px: { xs: 0, md: 3 },
-                  mb: { xs: 3, md: 0 },
-                  fontSize: { xs: '1.2rem', md: 'inherit' },
+                  justifyContent: { xs: 'flex-start', md: 'center' },
+                  px: { xs: 2, md: 3 },
+                  py: { xs: 1.5, md: 0 },
+                  mb: { xs: 1, md: 0 },
+                  fontSize: { xs: '1.1rem', md: 'inherit' },
+                  borderRadius: { xs: 2, md: 0 },
+                  width: { xs: '100%', md: 'auto' },
                   textDecoration: 'none',
-                  '& > div': { display: 'none' },
+                  transition: 'all 0.2s ease',
+                  ...(router.pathname === `/${destination}` && {
+                    backgroundColor: { xs: 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                    borderLeft: { xs: '3px solid', md: 'none' },
+                    borderLeftColor: { xs: 'primary.main', md: 'transparent' },
+                    pl: { xs: 2.5, md: 3 },
+                  }),
                   '&:hover': {
                     color: 'primary.main',
-                    '&>div': {
-                      display: 'block',
-                    },
+                    backgroundColor: { xs: 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                    transform: { xs: 'none', md: 'translateY(-2px)' },
                   },
                 }}
                 onClick={handleLinkClick}
               >
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 12,
-                    transform: 'rotate(3deg)',
-                    '& img': { width: 44, height: 'auto' },
-                    display: router.pathname === `/${destination}` ? 'block' : 'none',
-                  }}
-                >
-                  {/* eslint-disable-next-line */}
-                  <img src="/images/headline-curve.svg" alt="Headline curve" />
-                </Box>
                 {label}
               </Box>
             </Link>
@@ -342,34 +329,32 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
               fontWeight: 600,
               display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              px: { xs: 0, md: 3 },
-              mb: { xs: 3, md: 0 },
-              fontSize: { xs: '1.2rem', md: 'inherit' },
+              justifyContent: { xs: 'flex-start', md: 'center' },
+              px: { xs: 2, md: 3 },
+              py: { xs: 1.5, md: 0 },
+              mb: { xs: 1, md: 0 },
+              fontSize: { xs: '1.1rem', md: 'inherit' },
+              borderRadius: { xs: 2, md: 0 },
+              width: { xs: '100%', md: 'auto' },
+              transition: 'all 0.2s ease',
               ...(destination === '/' && {
                 color: 'primary.main',
               }),
-              '& > div': { display: 'none' },
-              '&.current>div': { display: 'block' },
+              '&.current': {
+                color: 'primary.main',
+                fontWeight: 700,
+                backgroundColor: { xs: 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                borderLeft: { xs: '3px solid', md: 'none' },
+                borderLeftColor: { xs: 'primary.main', md: 'transparent' },
+                pl: { xs: 2.5, md: 3 },
+              },
               '&:hover': {
                 color: 'primary.main',
-                '&>div': {
-                  display: 'block',
-                },
+                backgroundColor: { xs: 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+                transform: { xs: 'none', md: 'translateY(-2px)' },
               },
             }}
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 12,
-                transform: 'rotate(3deg)',
-                '& img': { width: 44, height: 'auto' },
-              }}
-            >
-              {/* eslint-disable-next-line */}
-              <img src="/images/headline-curve.svg" alt="Headline curve" />
-            </Box>
             {label}
           </Box>
         );
@@ -385,34 +370,84 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
             fontWeight: 600,
             display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            px: { xs: 0, md: 3 },
-            mb: { xs: 3, md: 0 },
-            fontSize: { xs: '1.2rem', md: 'inherit' },
+            justifyContent: { xs: 'flex-start', md: 'center' },
+            px: { xs: 2, md: 3 },
+            py: { xs: 1.5, md: 0 },
+            mb: { xs: 1, md: 0 },
+            fontSize: { xs: '1.1rem', md: 'inherit' },
+            borderRadius: { xs: 2, md: 0 },
+            width: { xs: '100%', md: 'auto' },
             textDecoration: 'none',
-            '& > div': { display: 'none' },
+            transition: 'all 0.2s ease',
             '&:hover': {
               color: 'primary.main',
-              '&>div': {
-                display: 'block',
-              },
+              backgroundColor: { xs: 'rgba(0, 0, 0, 0.04)', md: 'transparent' },
+              transform: { xs: 'none', md: 'translateY(-2px)' },
             },
           }}
           onClick={() => router.push('/login')}
         >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 12,
-              transform: 'rotate(3deg)',
-              '& img': { width: 44, height: 'auto' },
-            }}
-          >
-            {/* eslint-disable-next-line */}
-            <img src="/images/headline-curve.svg" alt="Headline curve" />
-          </Box>
           Login
         </Box>
+      )}
+
+      {/* Add Login/Signup buttons for home page */}
+      {router.pathname === '/' && (
+        <>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2, 
+            ml: { xs: 0, md: 3 }, 
+            mt: { xs: 3, md: 0 },
+            width: { xs: '100%', md: 'auto' },
+          }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => {
+                handleLinkClick();
+                router.push('/login');
+              }}
+              sx={{
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 3,
+                py: 1.2,
+                width: { xs: '100%', md: 'auto' },
+                fontSize: { xs: '1rem', md: 'inherit' },
+                borderWidth: 2,
+                '&:hover': {
+                  borderWidth: 2,
+                },
+              }}
+            >
+              Login
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                handleLinkClick();
+                router.push('/signup');
+              }}
+              sx={{
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 3,
+                py: 1.2,
+                width: { xs: '100%', md: 'auto' },
+                fontSize: { xs: '1rem', md: 'inherit' },
+                boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.1)',
+                '&:hover': {
+                  boxShadow: '0 6px 20px 0 rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              Sign Up
+            </Button>
+          </Box>
+        </>
       )}
     </Box>
   )

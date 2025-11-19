@@ -10,10 +10,13 @@ import 'slick-carousel/slick/slick.css'
 import '@/styles/globals.css'
 import '@/styles/react-slick.css'
 import { NextPageWithLayout } from '@/interfaces/layout'
-// Import Amplify configuration to initialize Cognito
+import Script from 'next/script'
 import '@/lib/amplifyConfig'
 import { AuthProvider } from '@/contexts/AuthContext'
-// import 'slick-carousel/slick/slick-theme.css'
+
+const isProd = process.env.NODE_ENV === 'production'
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID
+
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
@@ -42,6 +45,24 @@ const App: FC<AppPropsWithLayout> = (props: AppPropsWithLayout) => {
           {getLayout(<Component {...pageProps} />)}
         </AuthProvider>
       </MUIProvider>
+      
+      {/* Google Analytics - Only load in production */}
+      {isProd && GA_ID && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_ID}');
+            `}
+          </Script>
+        </>
+      )}
     </CacheProvider>
   )
 }

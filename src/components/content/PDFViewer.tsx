@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Import styles
 import '@react-pdf-viewer/core/lib/styles/index.css';
@@ -21,6 +22,7 @@ interface PDFViewerProps {
 const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isIOS } = useIsMobile();
   
   // Create the default layout plugin instance
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -42,7 +44,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
               <div style={{ padding: '0px 2px', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
                 <ZoomOut />
                 <ZoomIn />
-                <EnterFullScreen />
+                {!isIOS && <EnterFullScreen />}
               </div>
             </>
           );
@@ -95,6 +97,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
     };
   }, []);
 
+
   return (
     <Box
       sx={{
@@ -118,6 +121,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
         },
       }}
     >
+
       {loading && (
         <Box
           sx={{

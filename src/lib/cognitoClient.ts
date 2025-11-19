@@ -73,19 +73,21 @@ export interface User {
 // Auth functions that mirror the Supabase interface
 export const signIn = async (email: string, password: string): Promise<AuthResponse> => {
   try {
-    // Attempting to sign in
-    
     const signInInput: SignInInput = {
       username: email,
       password: password,
     }
     
     const result = await amplifySignIn(signInInput)
-    // Sign in successful
+    
+    let user: AuthUser | null = null
+    if (result.nextStep?.signInStep === 'DONE') {
+      user = await amplifyGetCurrentUser()
+    }
     
     return {
       data: {
-        user: result.nextStep?.signInStep === 'DONE' ? await amplifyGetCurrentUser() : null,
+        user,
         session: result
       },
       error: null

@@ -163,7 +163,6 @@ const Dashboard: NextPageWithLayout = () => {
   }
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number): void => {
-    console.log('Tab changed to:', newValue)
     setTabValue(newValue)
   }
 
@@ -184,9 +183,7 @@ const Dashboard: NextPageWithLayout = () => {
   }
 
   const handleGetUserDetails = async (username: string): Promise<void> => {
-    console.log('Getting user details for:', username)
     const userDetails = await getUserDetails(username)
-    console.log('User details received:', userDetails)
     if (userDetails) {
       setSelectedUserDetails(userDetails)
       setEditFormData({
@@ -195,7 +192,6 @@ const Dashboard: NextPageWithLayout = () => {
         familyName: userDetails.familyName || ''
       })
       setUserDetailsOpen(true)
-      console.log('UserDetailsDialog should now be open')
     }
   }
 
@@ -243,11 +239,9 @@ const Dashboard: NextPageWithLayout = () => {
     try {
       // First, remove user from all existing groups
       if (selectedUserDetails.groups && selectedUserDetails.groups.length > 0) {
-        console.log('Removing user from existing groups:', selectedUserDetails.groups)
         for (const existingGroup of selectedUserDetails.groups) {
           try {
             await removeUserFromGroup(selectedUserDetails.username, existingGroup)
-            console.log(`Removed user from group: ${existingGroup}`)
           } catch (error) {
             console.error(`Failed to remove user from group ${existingGroup}:`, error)
           }
@@ -327,7 +321,6 @@ const Dashboard: NextPageWithLayout = () => {
         })
       } else {
         // Create new notification
-        console.log('Creating notification with data:', data)
         await createNotification(data)
       }
       // Refresh notifications

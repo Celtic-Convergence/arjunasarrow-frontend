@@ -7,6 +7,40 @@ import { Logo } from '@/components/logo'
 import { Navigation } from '@/components/navigation'
 import { useTheme } from '@mui/material/styles'
 import { Menu, Close } from '@mui/icons-material'
+import Drawer from '@mui/material/Drawer'
+import { styled } from '@mui/material/styles'
+
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
+  '& .MuiDrawer-paper': {
+    width: '85%',
+    maxWidth: '320px',
+    backgroundColor: theme.palette.background.paper,
+    padding: theme.spacing(3),
+    paddingTop: theme.spacing(10),
+    boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.1)',
+    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  '& .MuiBackdrop-root': {
+    backdropFilter: 'blur(4px)',
+  },
+}))
+
+const MenuButton = styled(IconButton)(() => ({
+  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+  },
+}))
+
+const CloseButton = styled(IconButton)(({ theme }) => ({
+  position: 'absolute',
+  top: theme.spacing(2),
+  right: theme.spacing(2),
+  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+  },
+}))
 
 interface HeaderProps {
   isAuthenticated?: boolean
@@ -62,47 +96,53 @@ const Header: FC<HeaderProps> = ({ isAuthenticated = false, theme }) => {
             <Logo theme={theme} />
           </Box>
           <Box sx={{ ml: 'auto', display: { xs: 'inline-flex', md: 'none' } }}>
-            <IconButton onClick={() => setVisibleMenu(!visibleMenu)}>
+            <MenuButton onClick={() => setVisibleMenu(!visibleMenu)}>
               <Menu />
-            </IconButton>
+            </MenuButton>
           </Box>
-          <Box
+          
+          {/* Desktop Navigation */}
+          {!matchMobileView && (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexDirection: 'row',
+              }}
+            >
+              <Box /> {/* Magic space for desktop */}
+              <Navigation theme={theme} />
+            </Box>
+          )}
+          
+          {/* Mobile Navigation Drawer */}
+          <StyledDrawer
+            anchor="right"
+            open={visibleMenu && matchMobileView}
+            onClose={handleCloseMenu}
             sx={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexDirection: { xs: 'column', md: 'row' },
-
-              transition: (theme) => theme.transitions.create(['top']),
-              ...(matchMobileView && {
-                py: 6,
-                backgroundColor: 'background.paper',
-                zIndex: 'appBar',
-                position: 'fixed',
-                height: { xs: '100vh', md: 'auto' },
-                top: visibleMenu ? 0 : '-120vh',
-                left: 0,
-                justifyContent: 'flex-start',
-                paddingTop: '60px',
-              }),
+              display: { xs: 'block', md: 'none' },
+              '& .MuiBackdrop-root': {
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              },
             }}
           >
-            {matchMobileView ? null : <Box />} {/* Magic space only for desktop */}
-            <Navigation isMobile={matchMobileView} onCloseMenu={handleCloseMenu} theme={theme} />
-            {visibleMenu && matchMobileView && (
-              <IconButton
-                sx={{
-                  position: 'fixed',
-                  top: 10,
-                  right: 10,
-                }}
-                onClick={() => setVisibleMenu(!visibleMenu)}
-              >
-                <Close />
-              </IconButton>
-            )}
-          </Box>
+            <CloseButton onClick={handleCloseMenu}>
+              <Close />
+            </CloseButton>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                width: '100%',
+              }}
+            >
+              <Navigation isMobile={true} onCloseMenu={handleCloseMenu} theme={theme} />
+            </Box>
+          </StyledDrawer>
         </Box>
       </Container>
     </Box>

@@ -30,7 +30,6 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo'
 import Divider from '@mui/material/Divider'
 import Skeleton from '@mui/material/Skeleton'
-import Backdrop from '@mui/material/Backdrop'
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton'
 import Chip from '@mui/material/Chip'
 import Menu from '@mui/material/Menu'
@@ -132,7 +131,7 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
   const [tabValue, setTabValue] = useState(0)
   const [contentType, setContentType] = useState<'pdf' | 'video'>('pdf')
   const [selectedContent, setSelectedContent] = useState<PdfResource | VideoResource | null>(null)
-  const [isContentLoading, setIsContentLoading] = useState(false)
+  const [_, setIsContentLoading] = useState(false)
   const [contentIsReady, setContentIsReady] = useState(false)
   const [loadingError, setLoadingError] = useState<string | null>(null)
   const [serverError] = useState<string | null>(null)
@@ -154,9 +153,10 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
       try {
         setLoading(true)
 
-        // Get chapter ID from URL
-        const chapterId = window.location.pathname.split('/').pop()
-        if (!chapterId) {
+        // Get chapter ID from URL, handling trailing slashes
+        const pathParts = window.location.pathname.split('/').filter(part => part)
+        const chapterId = pathParts[pathParts.length - 1]
+        if (!chapterId || chapterId === 'chapter') {
           setLoadingError('Invalid chapter ID')
           return
         }
@@ -218,8 +218,9 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
     if (!currentUser) return
     
     try {
-      const chapterId = window.location.pathname.split('/').pop()
-      if (!chapterId) return
+      const pathParts = window.location.pathname.split('/').filter(part => part)
+      const chapterId = pathParts[pathParts.length - 1]
+      if (!chapterId || chapterId === 'chapter') return
 
       let idToken = sessionToken
       if (!idToken) {
@@ -489,20 +490,6 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
         />
       </Head>
       
-      <Backdrop
-        sx={{ 
-          color: '#fff', 
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          flexDirection: 'column',
-          gap: 2 
-        }}
-        open={isContentLoading && !contentIsReady}
-      >
-        <CircularProgress sx={{ color: '#4c51bf' }} size={60} />
-        <Typography variant="h6">
-          {contentType === 'pdf' ? 'Loading document...' : 'Loading video...'}
-        </Typography>
-      </Backdrop>
       
       <Box sx={{ py: 6, backgroundColor: 'background.default' }}>
         <Container maxWidth="lg">

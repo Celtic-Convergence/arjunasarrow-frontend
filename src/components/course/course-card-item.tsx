@@ -3,12 +3,19 @@ import Image from 'next/image'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Course } from '@/interfaces/course'
+import { useRouter } from 'next/router'
 
 interface Props {
   item: Course
 }
 
 const CourseCardItem: FC<Props> = ({ item }) => {
+  const router = useRouter()
+  
+  const handleCourseClick = (): void => {
+    router.push('/signup')
+  }
+
   return (
     <Box
       sx={{
@@ -17,13 +24,16 @@ const CourseCardItem: FC<Props> = ({ item }) => {
       }}
     >
       <Box
+        onClick={handleCourseClick}
         sx={{
           p: 2,
           backgroundColor: 'background.paper',
           borderRadius: 4,
           transition: (theme) => theme.transitions.create(['box-shadow']),
+          cursor: 'pointer',
           '&:hover': {
             boxShadow: 2,
+            transform: 'translateY(-2px)',
           },
         }}
       >

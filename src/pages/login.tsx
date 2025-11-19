@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { NextPageWithLayout } from '@/interfaces/layout'
 import { MainLayout } from '@/components/layout'
 import { AuthGuard } from '@/components/auth/AuthGuard'
+import { useAuth } from '@/contexts/AuthContext'
 import Head from 'next/head'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
@@ -24,10 +25,20 @@ import { useRouter } from 'next/router'
 
 const LoginContent: React.FC = () => {
   const router = useRouter()
+  const { refreshAuth } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    if (router.query.reset === 'success') {
+      setSuccessMessage('Password reset successfully! You can now login with your new password.')
+      // Clean up the URL
+      router.replace('/login', undefined, { shallow: true })
+    }
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
@@ -54,8 +65,11 @@ const LoginContent: React.FC = () => {
       }
       
       if (data?.user) {
-        // Refresh auth context to pick up new session
-        window.location.href = '/dashboard'
+        // Refresh the auth context to update the global auth state
+        await refreshAuth()
+        
+        // Now navigate to dashboard
+        router.push('/dashboard')
       }
     } catch (error: unknown) {
       const err = error as Error
@@ -113,15 +127,14 @@ const LoginContent: React.FC = () => {
                   <Typography variant="body1" sx={{ color: 'white', textAlign: 'center', mb: 4 }}>
                     Access your economics learning materials, track your progress, and excel in your board exams.
                   </Typography>
-                  <Link href="/payment" passHref>
-                    <StyledButton 
-                      color="secondary" 
-                      size="large" 
-                      variant="contained"
-                    >
-                      New Student? Join Now
-                    </StyledButton>
-                  </Link>
+                  <StyledButton 
+                    color="secondary" 
+                    size="large" 
+                    variant="contained"
+                    onClick={() => router.push('/payment')}
+                  >
+                    New Student? Join Now
+                  </StyledButton>
                 </Box>
               </Box>
             </Grid>
@@ -135,6 +148,12 @@ const LoginContent: React.FC = () => {
                   {error && (
                     <Alert severity="error" sx={{ mb: 3 }}>
                       {error}
+                    </Alert>
+                  )}
+                  
+                  {successMessage && (
+                    <Alert severity="success" sx={{ mb: 3 }}>
+                      {successMessage}
                     </Alert>
                   )}
                   
@@ -196,15 +215,15 @@ const LoginContent: React.FC = () => {
                     
                     <Grid container spacing={2} sx={{ mt: 2 }}>
                       <Grid item xs={12} sm={6}>
-                        <Link href="/forgot-password" passHref>
-                          <Typography component="a" variant="body2" sx={{ color: 'primary.main', textAlign: 'center', display: 'block' }}>
+                        <Link href="/forgot-password" passHref legacyBehavior>
+                          <Typography component="a" variant="body2" sx={{ color: 'primary.main', textAlign: 'center', display: 'block', cursor: 'pointer' }}>
                             Forgot password?
                           </Typography>
                         </Link>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Link href="/payment" passHref>
-                          <Typography component="a" variant="body2" sx={{ color: 'primary.main', textAlign: 'center', display: 'block' }}>
+                        <Link href="/payment" passHref legacyBehavior>
+                          <Typography component="a" variant="body2" sx={{ color: 'primary.main', textAlign: 'center', display: 'block', cursor: 'pointer' }}>
                             New student? Don&apos;t have an account?
                           </Typography>
                         </Link>
@@ -217,8 +236,8 @@ const LoginContent: React.FC = () => {
                       </Typography>
                     </Divider>
 
-                    <Link href="/" passHref>
-                      <Typography component="a" variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', display: 'block' }}>
+                    <Link href="/" passHref legacyBehavior>
+                      <Typography component="a" variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', display: 'block', cursor: 'pointer' }}>
                         Return to Home Page
                       </Typography>
                     </Link>
