@@ -1,28 +1,46 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Worker, Viewer, SpecialZoomLevel } from '@react-pdf-viewer/core';
+import { Worker, Viewer, SpecialZoomLevel, RenderPageProps } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { WatermarkPageLayer } from './WatermarkPageLayer';
 
 // Import styles
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
+interface User {
+  id: string;
+  email?: string;
+  username?: string;
+  attributes?: {
+    given_name?: string;
+    family_name?: string;
+    [key: string]: unknown;
+  };
+}
+
 interface PDFViewerProps {
   fileUrl: string;
   title?: string;
   onContentReady?: () => void;
+  user?: User | null;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
+const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady, user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isIOS } = useIsMobile();
+  
+  // Custom page renderer with watermarks
+  const renderPage = (props: RenderPageProps): React.ReactElement => (
+    <WatermarkPageLayer renderPageProps={props} user={user} />
+  );
   
   // Create the default layout plugin instance
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -97,7 +115,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
     };
   }, []);
 
-
   return (
     <Box
       sx={{
@@ -121,7 +138,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
         },
       }}
     >
-
       {loading && (
         <Box
           sx={{
@@ -157,6 +173,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady }) => {
               defaultScale={SpecialZoomLevel.ActualSize}
               plugins={[defaultLayoutPluginInstance]}
               onDocumentLoad={handleDocumentLoad}
+              renderPage={renderPage}
             />
           </Box>
         </Worker>

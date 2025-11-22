@@ -6,6 +6,8 @@ const nextConfig = {
     unoptimized: true,
   },
   reactStrictMode: true,
+  // Ensure assets are loaded from root
+  assetPrefix: process.env.ASSET_PREFIX || undefined,
   webpack: (config) => {
     // Prevent canvas module from being bundled (PDF.js optional dependency)
     config.resolve.alias = {
@@ -14,13 +16,6 @@ const nextConfig = {
     };
     
     return config;
-  },
-  // Generate a custom 404.html during build for proper CloudFront/S3 error handling
-  exportPathMap: async function (defaultPathMap) {
-    return {
-      ...defaultPathMap,
-      '/404': { page: '/404' },
-    };
   },
 }
 

@@ -21,9 +21,12 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import AddIcon from '@mui/icons-material/Add'
+import LockIcon from '@mui/icons-material/Lock'
 import { BookWithChapters } from '../types'
 import { Chapter } from '@/types/database.types'
 import { EditableTitle } from '../common/EditableTitle'
+import { useAuth } from '@/contexts/AuthContext'
+import { PurchaseButton } from '../common/PurchaseButton'
 
 interface BookCardProps {
   book: BookWithChapters
@@ -50,6 +53,11 @@ export const BookCard: React.FC<BookCardProps> = ({
   onUpdateChapterTitle,
   onAddChapter
 }) => {
+  const { user: _user } = useAuth()
+  
+  // Check if book is locked (paid only and user doesn't have access)
+  const isLocked = book.accessType === 'PAID_ONLY' && !book.hasAccess
+  
   if (loading) {
     return <BookSkeleton />
   }
@@ -151,17 +159,98 @@ export const BookCard: React.FC<BookCardProps> = ({
             </Box>
           </CardContent>
 
-          <Box sx={{ px: 4, pb: 4, pt: 0 }}>
+          <Box sx={{ px: 4, pb: 4, pt: 0, position: 'relative', minHeight: isLocked ? '400px' : 'auto' }}>
+            {/* Lock Overlay for Paid Content */}
+            {isLocked && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 248, 255, 0.98) 100%)',
+                  backdropFilter: 'blur(8px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10,
+                  borderRadius: '0 0 16px 16px',
+                  p: 4,
+                  border: '2px dashed rgba(102, 126, 234, 0.25)',
+                  borderTop: 'none',
+                  boxShadow: 'inset 0 0 60px rgba(102, 126, 234, 0.03)',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 72,
+                    height: 72,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    mb: 2.5,
+                    boxShadow: '0 12px 32px rgba(102, 126, 234, 0.4)',
+                  }}
+                >
+                  <LockIcon sx={{ fontSize: 36, color: 'white' }} />
+                </Box>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontWeight: 800,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mb: 1.5,
+                    textAlign: 'center',
+                  }}
+                >
+                  Premium Content
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: 'rgba(0, 0, 0, 0.65)',
+                    mb: 4,
+                    textAlign: 'center',
+                    maxWidth: 340,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Purchase this note to unlock all chapters and exclusive content
+                </Typography>
+                <Box sx={{ width: '100%', maxWidth: 280 }}>
+                  <PurchaseButton
+                    bookId={book.id}
+                    courseId={book.course_id}
+                    bookTitle={book.title}
+                    price={book.price || 0}
+                    currency={book.currency || 'INR'}
+                    size="large"
+                    fullWidth
+                  />
+                </Box>
+              </Box>
+            )}
+
             <Accordion 
               expanded={expanded} 
               onChange={onExpandChange}
+              disabled={isLocked}
               sx={{ 
                 boxShadow: 'none', 
                 '&:before': { display: 'none' },
                 borderRadius: '0 0 8px 8px',
                 border: '1px solid rgba(102, 126, 234, 0.1)',
                 borderTop: 'none',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                filter: isLocked ? 'blur(4px)' : 'none',
+                pointerEvents: isLocked ? 'none' : 'auto',
               }}
             >
               <AccordionSummary

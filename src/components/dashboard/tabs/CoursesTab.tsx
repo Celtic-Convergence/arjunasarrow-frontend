@@ -148,20 +148,28 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
             {userCourse.name}
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            {userCourse.books.length} Book{userCourse.books.length !== 1 ? 's' : ''} Available
+            {userCourse.books.length} Note{userCourse.books.length !== 1 ? 's' : ''} Available
           </Typography>
         </Box>
         
-        {userCourse.books.map((book) => (
-          <BookCard
-            key={book.id}
-            book={book}
-            _courseId={userCourse.id}
-            expanded={expandedAccordion === `book-${book.id}`}
-            onExpandChange={() => handleAccordionChange(`book-${book.id}`)(null as any, !expandedAccordion)}
-            onChapterClick={(chapter) => navigateToChapter(chapter.id)}
-          />
-        ))}
+        {userCourse.books
+          .sort((a, b) => {
+            // Sort: unlocked books first, then locked books
+            const aLocked = a.accessType === 'PAID_ONLY' && !a.hasAccess
+            const bLocked = b.accessType === 'PAID_ONLY' && !b.hasAccess
+            if (aLocked === bLocked) return a.order - b.order // Keep original order within same lock status
+            return aLocked ? 1 : -1 // Unlocked (false) comes before locked (true)
+          })
+          .map((book) => (
+            <BookCard
+              key={book.id}
+              book={book}
+              _courseId={userCourse.id}
+              expanded={expandedAccordion === `book-${book.id}`}
+              onExpandChange={() => handleAccordionChange(`book-${book.id}`)(null as any, !expandedAccordion)}
+              onChapterClick={(chapter) => navigateToChapter(chapter.id)}
+            />
+          ))}
       </Box>
     )
   }
@@ -264,12 +272,20 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
             </Typography>
           </Box>
           
-          {selectedCourse.books.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              _courseId={selectedCourse.id}
-              expanded={expandedAccordion === `book-${book.id}`}
+          {selectedCourse.books
+            .sort((a, b) => {
+              // Sort: unlocked books first, then locked books
+              const aLocked = a.accessType === 'PAID_ONLY' && !a.hasAccess
+              const bLocked = b.accessType === 'PAID_ONLY' && !b.hasAccess
+              if (aLocked === bLocked) return a.order - b.order // Keep original order within same lock status
+              return aLocked ? 1 : -1 // Unlocked (false) comes before locked (true)
+            })
+            .map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                _courseId={selectedCourse.id}
+                expanded={expandedAccordion === `book-${book.id}`}
               onExpandChange={() => handleAccordionChange(`book-${book.id}`)(null as any, !expandedAccordion)}
               onChapterClick={(chapter) => navigateToChapter(chapter.id)}
               isAdmin={isAdmin}

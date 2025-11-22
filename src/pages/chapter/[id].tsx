@@ -865,6 +865,29 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
                 {/* PDF viewer */}
                 <Grid item xs={12} md={8} sx={{ order: { xs: 2, md: 2 } }}>
                   {selectedContent && !('quality' in selectedContent) ? (
+                    <>
+                    <Alert 
+                      severity="warning" 
+                      variant="filled"
+                      sx={{ 
+                        mb: 2, 
+                        borderRadius: 2,
+                        bgcolor: '#ed6c02', // Darker orange for better visibility
+                        color: '#fff',
+                        '& .MuiAlert-icon': {
+                          color: '#fff'
+                        }
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                        STRICT COPYRIGHT WARNING
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                        This content is digitally watermarked and monitored. Screenshots, screen recording, and unauthorized sharing are strictly prohibited. 
+                        Any violation will result in <strong>immediate permanent account termination</strong> without refund and potential legal action.
+                      </Typography>
+                    </Alert>
+
                     <Box sx={{ 
                       borderRadius: 4,
                       overflow: 'hidden',
@@ -883,6 +906,7 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
                           fileUrl={selectedContent.signedUrl}
                           title={selectedContent.filename}
                           onContentReady={handleContentReady}
+                          user={currentUser}
                         />
                       ) : (
                         <PDFViewer
@@ -890,9 +914,11 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
                           fileUrl={selectedContent.signedUrl}
                           title={selectedContent.filename}
                           onContentReady={handleContentReady}
+                          user={currentUser}
                         />
                       )}
                     </Box>
+                    </>
                   ) : (
                     <Paper sx={{ 
                       p: 6, 

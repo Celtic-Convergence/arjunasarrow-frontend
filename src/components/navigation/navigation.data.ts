@@ -10,8 +10,8 @@ export const navigations: Navigation[] = [
     path: 'e-learning-portal', // '/e-learning-portal',
   },
   {
-    label: 'Books',
-    path: 'books', // '/popular-course',
+    label: 'Notes',
+    path: 'notes', // '/popular-course',
   },
   {
     label: 'Alumni',

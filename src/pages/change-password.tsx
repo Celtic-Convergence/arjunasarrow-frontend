@@ -46,8 +46,8 @@ const ChangePassword: NextPageWithLayout = () => {
       return
     }
 
-    if (newPassword.length !== 8) {
-      setError('Password must be exactly 8 characters long')
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long')
       return
     }
 
@@ -169,7 +169,7 @@ const ChangePassword: NextPageWithLayout = () => {
           
           {isFirstTimeUser && (
             <Alert severity="info" sx={{ mb: 3 }}>
-              Welcome! Please set a new password to access your account. Your password must be exactly 8 characters long.
+              Welcome! Please set a new password to access your account. Your password must be at least 8 characters long.
             </Alert>
           )}
           
@@ -238,7 +238,7 @@ const ChangePassword: NextPageWithLayout = () => {
                       </InputAdornment>
                     ),
                   }}
-                  helperText="Password must be exactly 8 characters long"
+                  helperText="Password must be at least 8 characters long"
                   sx={{ mb: 2 }}
                 />
                 

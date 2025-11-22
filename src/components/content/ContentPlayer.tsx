@@ -97,13 +97,13 @@ const ContentPlayer: React.FC<ContentPlayerProps> = ({
   const [pdfUrl, setPdfUrl] = useState('')
   const [videoUrl, setVideoUrl] = useState('')
   const { isMobile, isTablet } = useIsMobile()
-  const { user } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
 
-  const handleError = useCallback((errorMsg: string): void => {
-    setError(errorMsg)
+  const handleError = useCallback((errorMessage: string) => {
+    setError(errorMessage)
     setLoading(false)
-    if (onError) onError(errorMsg)
-  }, [onError]);
+    if (onError) onError(errorMessage)
+  }, [onError])
 
 
   // Fetch video signed URL
@@ -191,12 +191,12 @@ const ContentPlayer: React.FC<ContentPlayerProps> = ({
     if (onReady) onReady();
   }, [onReady]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
         <CircularProgress />
         <Typography sx={{ ml: 2 }}>
-          Loading {content.content_type}...
+          {authLoading ? 'Authenticating...' : `Loading ${content.content_type}...`}
         </Typography>
       </Box>
     )
@@ -221,6 +221,7 @@ const ContentPlayer: React.FC<ContentPlayerProps> = ({
           fileUrl={pdfUrl} 
           title={content.title || "PDF Document"}
           onContentReady={handleContentLoaded}
+          user={user}
         />
       </PdfContainer>
     )

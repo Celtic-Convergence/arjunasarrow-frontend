@@ -27,7 +27,7 @@ import { GroupManagementDialog } from '@/components/dashboard/dialogs/GroupManag
 import { NotificationDialog } from '@/components/dashboard/dialogs/NotificationDialog'
 import { DeleteNotificationDialog } from '@/components/dashboard/dialogs/DeleteNotificationDialog'
 import { ManageAttachmentsDialog } from '@/components/dashboard/dialogs/ManageAttachmentsDialog'
-import { CreateBookDialog } from '@/components/dashboard/dialogs/CreateBookDialog'
+import { CreateBookDialog, CreateBookData } from '@/components/dashboard/dialogs/CreateBookDialog'
 import { CreateChapterDialog } from '@/components/dashboard/dialogs/CreateChapterDialog'
 import { useNotificationManagement } from '@/hooks/dashboard/useNotificationManagement'
 import { useCourses } from '@/hooks/dashboard/useCourses'
@@ -430,9 +430,9 @@ const Dashboard: NextPageWithLayout = () => {
     setCreateChapterDialogOpen(true)
   }
 
-  const handleCreateBook = async (title: string): Promise<void> => {
+  const handleCreateBook = async (bookData: CreateBookData): Promise<void> => {
     try {
-      await createBook(createBookCourseId, title)
+      await createBook(createBookCourseId, bookData)
       setCreateBookDialogOpen(false)
       setCreateBookCourseId('')
     } catch (error) {

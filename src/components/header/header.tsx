@@ -9,6 +9,7 @@ import { useTheme } from '@mui/material/styles'
 import { Menu, Close } from '@mui/icons-material'
 import Drawer from '@mui/material/Drawer'
 import { styled } from '@mui/material/styles'
+import { useRouter } from 'next/router'
 
 const StyledDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {
@@ -48,6 +49,7 @@ interface HeaderProps {
 }
 
 const Header: FC<HeaderProps> = ({ isAuthenticated = false, theme }) => {
+  const router = useRouter()
   const [visibleMenu, setVisibleMenu] = useState<boolean>(false)
   const [isScrolled, setIsScrolled] = useState<boolean>(false)
   const { breakpoints } = useTheme()
@@ -91,7 +93,7 @@ const Header: FC<HeaderProps> = ({ isAuthenticated = false, theme }) => {
               textDecoration: 'none',
               color: 'inherit'
             }}
-            onClick={() => window.location.href = isAuthenticated ? '/dashboard' : '/'}
+            onClick={() => router.push(isAuthenticated ? '/dashboard' : '/')}
           >
             <Logo theme={theme} />
           </Box>

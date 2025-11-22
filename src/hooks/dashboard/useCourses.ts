@@ -8,7 +8,14 @@ export const useCourses = (user: any): {
   loadingError: string | null
   isAdmin: boolean
   loadCourseData: () => Promise<void>
-  createBook: (courseId: string, title: string, order?: number) => Promise<any>
+  createBook: (courseId: string, bookData: { 
+    title: string
+    order?: number
+    accessType?: 'COURSE_DEFAULT' | 'PAID_ONLY'
+    price?: number
+    currency?: string
+    eligibleCourses?: string[]
+  }) => Promise<any>
   updateBookTitle: (courseId: string, bookId: string, title: string) => Promise<any>
   createChapter: (courseId: string, bookId: string, title: string, order?: number) => Promise<any>
   updateChapterTitle: (courseId: string, bookId: string, chapterId: string, title: string) => Promise<any>
@@ -48,9 +55,16 @@ export const useCourses = (user: any): {
             id: book.bookId,
             title: book.title,
             description: book.description || '',
-            course_id: course.courseId,
+            course_id: book.courseId || course.courseId,
             created_at: book.createdAt || new Date().toISOString(),
             updated_at: book.updatedAt || new Date().toISOString(),
+            // Purchase-related fields
+            accessType: book.accessType,
+            price: book.price,
+            currency: book.currency,
+            eligibleCourses: book.eligibleCourses,
+            hasAccess: book.hasAccess,
+            order: book.order || 0,
             chapters: book.chapters?.map((chapter: any) => ({
               id: chapter.chapterId,
               title: chapter.title,
@@ -80,9 +94,16 @@ export const useCourses = (user: any): {
             id: book.bookId,
             title: book.title,
             description: book.description || '',
-            course_id: courseData.courseId,
+            course_id: book.courseId || courseData.courseId,
             created_at: book.createdAt || new Date().toISOString(),
             updated_at: book.updatedAt || new Date().toISOString(),
+            // Purchase-related fields
+            accessType: book.accessType,
+            price: book.price,
+            currency: book.currency,
+            eligibleCourses: book.eligibleCourses,
+            hasAccess: book.hasAccess,
+            order: book.order || 0,
             chapters: book.chapters?.map((chapter: any) => ({
               id: chapter.chapterId,
               title: chapter.title,
@@ -115,11 +136,21 @@ export const useCourses = (user: any): {
   }, [user, loadCourseData])
 
   // Create a new book
-  const createBook = useCallback(async (courseId: string, title: string, order?: number) => {
+  const createBook = useCallback(async (
+    courseId: string, 
+    bookData: { 
+      title: string
+      order?: number
+      accessType?: 'COURSE_DEFAULT' | 'PAID_ONLY'
+      price?: number
+      currency?: string
+      eligibleCourses?: string[]
+    }
+  ) => {
     try {
       const response = await apiCall(`/courses/${courseId}/books`, {
         method: 'POST',
-        body: JSON.stringify({ title, order })
+        body: JSON.stringify(bookData)
       })
       
       // Reload course data to get updated structure

@@ -220,10 +220,10 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
   return (
     <Box sx={navBoxStyles}>
       {navigations.map(({ path: destination, label }) => {
-        // Filter out Alumni, Books, and Contact when on e-learning portal related pages
+        // Filter out Alumni, Notes, and Contact when on e-learning portal related pages
         if (isELearningRelatedPage && 
             (destination === 'alumni' || 
-             destination === 'books' || 
+             destination === 'notes' || 
              destination === 'contact')) {
           return null;
         }
@@ -233,8 +233,8 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
           return null;
         }
 
-        // When on e-learning portal related pages, Home should link back to homepage
-        if (destination === '#' && isELearningRelatedPage) {
+        // When NOT on homepage, Home should link back to homepage using Next.js Link
+        if (destination === '#' && router.pathname !== '/') {
           return (
             <Link href="/" key={destination} passHref legacyBehavior>
               <Box
@@ -269,8 +269,8 @@ const Navigation: FC<NavigationProps> = ({ isMobile, onCloseMenu, theme }) => {
           );
         }
 
-        // E-learning portal link
-        if (destination === 'e-learning-portal') {
+        // E-learning portal link and Notes link
+        if (destination === 'e-learning-portal' || destination === 'notes') {
           return (
             <Link href={`/${destination}`} key={destination} passHref legacyBehavior>
               <Box

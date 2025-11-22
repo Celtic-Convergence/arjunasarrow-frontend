@@ -79,7 +79,7 @@ const HomePopularCourse: FC = () => {
 
   return (
     <Box
-      id="books"
+      id="notes"
       sx={{
         pt: {
           xs: 6,
@@ -102,7 +102,7 @@ const HomePopularCourse: FC = () => {
               }}
             >
               <Typography variant="h1" sx={{ mt: { xs: 0, md: -5 }, fontSize: { xs: 30, md: 48 } }}>
-                Economics Books
+                Economics Notes
               </Typography>
             </Box>
           </Grid>

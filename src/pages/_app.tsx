@@ -46,6 +46,12 @@ const App: FC<AppPropsWithLayout> = (props: AppPropsWithLayout) => {
         </AuthProvider>
       </MUIProvider>
       
+      {/* Razorpay SDK for payment processing */}
+      <Script 
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
+
       {/* Google Analytics - Only load in production */}
       {isProd && GA_ID && (
         <>

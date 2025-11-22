@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
           
           // Check if cache is still valid
           if (now - sessionCache.timestamp < SESSION_CACHE_DURATION) {
-            setUser(sessionCache.user)
+            setUser(sessionCache.user || null)
             setSessionToken(sessionCache.token)
             setIsLoading(false)
             

@@ -47,13 +47,21 @@ export interface Course {
  * Book interface
  */
 export interface Book {
-  id: string;
-  course_id: string;
-  title: string;
-  description: string;
-  cover_image_url: string | null;
-  created_at: string;
-  updated_at: string;
+  id: string
+  bookId?: string // Backend uses bookId in public API
+  course_id: string
+  title: string
+  description?: string // Book description (shown on public books page)
+  order: number
+  chapters?: Chapter[] // May be empty array in public API
+  created_at: string
+  updated_at: string
+  status?: 'draft' | 'published'
+  accessType?: 'COURSE_DEFAULT' | 'PAID_ONLY'
+  price?: number // Price in paise
+  currency?: string // e.g., 'INR'
+  eligibleCourses?: string[]
+  hasAccess?: boolean
 }
 
 /**

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Worker, Viewer, SpecialZoomLevel } from '@react-pdf-viewer/core';
+import { Worker, Viewer, SpecialZoomLevel, RenderPageProps } from '@react-pdf-viewer/core';
 import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import { zoomPlugin } from '@react-pdf-viewer/zoom';
 import Box from '@mui/material/Box';
@@ -17,19 +17,32 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import Portal from '@mui/material/Portal';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { WatermarkPageLayer } from './WatermarkPageLayer';
 
 // Import styles
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/page-navigation/lib/styles/index.css';
 import '@react-pdf-viewer/zoom/lib/styles/index.css';
 
+interface User {
+  id: string;
+  email?: string;
+  username?: string;
+  attributes?: {
+    given_name?: string;
+    family_name?: string;
+    [key: string]: unknown;
+  };
+}
+
 interface MobilePDFViewerProps {
   fileUrl: string;
   title?: string;
   onContentReady?: () => void;
+  user?: User | null;
 }
 
-const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentReady }) => {
+const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentReady, user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -43,6 +56,11 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
   
   const { CurrentPageInput, GoToNextPage, GoToPreviousPage } = pageNavigationPluginInstance;
   const { ZoomIn, ZoomOut, Zoom } = zoomPluginInstance;
+
+  // Render page with watermarks
+  const renderPage = (props: RenderPageProps): React.ReactElement => (
+    <WatermarkPageLayer renderPageProps={props} user={user} />
+  );
 
   useEffect(() => {
     // Reset state when fileUrl changes
@@ -186,7 +204,6 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
         },
       }}
     >
-
       {loading && (
         <Box
           sx={{
@@ -222,6 +239,7 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
               defaultScale={SpecialZoomLevel.PageWidth}
               plugins={[pageNavigationPluginInstance, zoomPluginInstance]}
               onDocumentLoad={handleDocumentLoad}
+              renderPage={renderPage}
             />
           </Box>
           
@@ -429,6 +447,7 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
               width: '100%',
               overflow: 'hidden',
               backgroundColor: '#f5f5f5',
+              position: 'relative',
             }}
           >
             <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
@@ -438,6 +457,7 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
                     fileUrl={fileUrl}
                     defaultScale={SpecialZoomLevel.PageWidth}
                     plugins={[pageNavigationPluginInstance, zoomPluginInstance]}
+                    renderPage={renderPage}
                   />
                 </Box>
                 

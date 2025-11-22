@@ -8,7 +8,15 @@ import {
   Button,
   Box,
   Alert,
-  Typography
+  Typography,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Chip,
+  Autocomplete,
+  InputAdornment
 } from '@mui/material'
 
 interface CreateBookDialogProps {
@@ -16,25 +24,50 @@ interface CreateBookDialogProps {
   onClose: () => void
   courseId: string
   courseName: string
-  onCreateBook: (title: string) => Promise<void>
+  onCreateBook: (bookData: CreateBookData) => Promise<void>
   existingBooksCount: number
 }
+
+export interface CreateBookData {
+  title: string
+  description?: string
+  order?: number
+  accessType: 'COURSE_DEFAULT' | 'PAID_ONLY'
+  price?: number // Price in rupees (will be converted to paise)
+  currency?: string
+  eligibleCourses?: string[]
+}
+
+// Common course options for eligibility
+const COURSE_OPTIONS = [
+  'XI_CBSE', 'XI_ICSE', 'XI_STATE',
+  'XII_CBSE', 'XII_ICSE', 'XII_STATE',
+  'PAID_USER'
+]
 
 export const CreateBookDialog: React.FC<CreateBookDialogProps> = ({
   open,
   onClose,
-  courseId: _courseId,
+  courseId,
   courseName,
   onCreateBook,
   existingBooksCount: _existingBooksCount
 }) => {
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [accessType, setAccessType] = useState<'COURSE_DEFAULT' | 'PAID_ONLY'>('COURSE_DEFAULT')
+  const [price, setPrice] = useState('')
+  const [eligibleCourses, setEligibleCourses] = useState<string[]>(['PAID_USER'])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleClose = (): void => {
     if (!loading) {
       setTitle('')
+      setDescription('')
+      setAccessType('COURSE_DEFAULT')
+      setPrice('')
+      setEligibleCourses(['PAID_USER'])
       setError(null)
       onClose()
     }
@@ -52,11 +85,46 @@ export const CreateBookDialog: React.FC<CreateBookDialogProps> = ({
       return
     }
 
+    // Validate price for PAID_ONLY books
+    if (accessType === 'PAID_ONLY') {
+      if (!price || parseFloat(price) <= 0) {
+        setError('Price is required for paid books and must be greater than 0')
+        return
+      }
+      if (eligibleCourses.length === 0) {
+        setError('At least one eligible course is required for paid books')
+        return
+      }
+      // Ensure PAID_USER is always included
+      if (!eligibleCourses.includes('PAID_USER')) {
+        setError('PAID_USER must be included in eligible courses')
+        return
+      }
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      await onCreateBook(trimmedTitle)
+      const bookData: CreateBookData = {
+        title: trimmedTitle,
+        accessType
+      }
+
+      // Add description if provided
+      const trimmedDescription = description.trim()
+      if (trimmedDescription) {
+        bookData.description = trimmedDescription
+      }
+
+      // Add purchase-related fields only for PAID_ONLY books
+      if (accessType === 'PAID_ONLY') {
+        bookData.price = Math.round(parseFloat(price) * 100) // Convert rupees to paise
+        bookData.currency = 'INR'
+        bookData.eligibleCourses = eligibleCourses
+      }
+
+      await onCreateBook(bookData)
       handleClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create book')
@@ -114,6 +182,124 @@ export const CreateBookDialog: React.FC<CreateBookDialogProps> = ({
             }}
             helperText={`${title.length}/200 characters`}
           />
+
+          <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={loading}
+            placeholder="Brief description of this book (optional - shown on public books page)"
+            inputProps={{
+              maxLength: 500
+            }}
+            helperText={`${description.length}/500 characters - This will be displayed on the public books page for guest users`}
+          />
+
+          <FormControl component="fieldset">
+            <FormLabel component="legend" sx={{ mb: 1 }}>
+              Access Type *
+            </FormLabel>
+            <RadioGroup
+              value={accessType}
+              onChange={(e) => setAccessType(e.target.value as 'COURSE_DEFAULT' | 'PAID_ONLY')}
+            >
+              <FormControlLabel
+                value="COURSE_DEFAULT"
+                control={<Radio />}
+                label={
+                  <Box>
+                    <Typography variant="body1">Course Default (Free)</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Included with course enrollment - auto-granted to all students in {courseName}
+                    </Typography>
+                  </Box>
+                }
+                disabled={loading}
+              />
+              <FormControlLabel
+                value="PAID_ONLY"
+                control={<Radio />}
+                label={
+                  <Box>
+                    <Typography variant="body1">Paid Only</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Requires individual purchase - available to eligible courses
+                    </Typography>
+                  </Box>
+                }
+                disabled={loading}
+              />
+            </RadioGroup>
+          </FormControl>
+
+          {accessType === 'PAID_ONLY' && (
+            <>
+              <TextField
+                label="Price"
+                fullWidth
+                value={price}
+                onChange={(e) => {
+                  // Only allow numbers and decimal point
+                  const value = e.target.value
+                  if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                    setPrice(value)
+                  }
+                }}
+                disabled={loading}
+                required
+                type="text"
+                placeholder="999"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">₹</InputAdornment>
+                }}
+                helperText="Enter price in rupees (e.g., 999 for ₹999)"
+              />
+
+              <FormControl fullWidth>
+                <FormLabel sx={{ mb: 1 }}>
+                  Eligible Courses * (Who can see and purchase this book)
+                </FormLabel>
+                <Autocomplete
+                  multiple
+                  options={COURSE_OPTIONS}
+                  value={eligibleCourses}
+                  onChange={(_event, newValue) => {
+                    // Always include PAID_USER
+                    const uniqueValues = Array.from(new Set([...newValue, 'PAID_USER']))
+                    setEligibleCourses(uniqueValues)
+                  }}
+                  disabled={loading}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Select courses"
+                      helperText="PAID_USER is always included (required)"
+                    />
+                  )}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => {
+                      const { key, ...tagProps } = getTagProps({ index })
+                      return (
+                        <Chip
+                          key={key}
+                          label={option}
+                          {...tagProps}
+                          disabled={option === 'PAID_USER' || loading}
+                          color={option === 'PAID_USER' ? 'primary' : 'default'}
+                        />
+                      )
+                    })
+                  }
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                  💡 Add course from where book is created (e.g., {courseId}) to make it visible to those students
+                </Typography>
+              </FormControl>
+            </>
+          )}
         </Box>
       </DialogContent>
 
