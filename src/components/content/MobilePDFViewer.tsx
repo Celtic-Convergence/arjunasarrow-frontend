@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Worker, Viewer, SpecialZoomLevel, RenderPageProps } from '@react-pdf-viewer/core';
+import { Worker, Viewer, SpecialZoomLevel, RenderPageProps, VisiblePagesRange } from '@react-pdf-viewer/core';
 import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import { zoomPlugin } from '@react-pdf-viewer/zoom';
 import Box from '@mui/material/Box';
@@ -254,6 +254,12 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
               plugins={[pageNavigationPluginInstance, zoomPluginInstance]}
               onDocumentLoad={handleDocumentLoad}
               renderPage={renderPage}
+              // Pre-render more pages to ensure smooth zoom transitions
+              // Using a larger buffer to prevent pages from disappearing at different zoom levels
+              setRenderRange={(visiblePagesRange: VisiblePagesRange) => ({
+                startPage: Math.max(0, visiblePagesRange.startPage - 5),
+                endPage: visiblePagesRange.endPage + 5,
+              })}
             />
           </Box>
           

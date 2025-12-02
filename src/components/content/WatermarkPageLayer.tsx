@@ -76,12 +76,14 @@ interface WatermarkPageLayerProps {
 }
 
 export const WatermarkPageLayer: React.FC<WatermarkPageLayerProps> = ({ renderPageProps, user }) => {
+  // Mark the page as rendered when canvas and text layers are complete
+  // This is CRITICAL for react-pdf-viewer's virtualization system
+  // Must match the exact pattern from official docs v3.1.0
   useEffect(() => {
-    // Mark the page rendered when the canvas and text layers are rendered
     if (renderPageProps.canvasLayerRendered && renderPageProps.textLayerRendered) {
       renderPageProps.markRendered(renderPageProps.pageIndex);
     }
-  }, [renderPageProps.canvasLayerRendered, renderPageProps.textLayerRendered, renderPageProps.markRendered, renderPageProps.pageIndex]);
+  }, [renderPageProps.canvasLayerRendered, renderPageProps.textLayerRendered]);
 
   // Fallback for debugging if user is null
   const displayUser = user || {
