@@ -188,6 +188,7 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
     <Box
       ref={containerRef}
       sx={{
+        '--scale-factor': '1', // Required by PDF.js - must be on container or higher
         height: '100%',
         width: '100%',
         display: 'flex',
@@ -199,8 +200,15 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
         WebkitUserSelect: 'none',
         MozUserSelect: 'none',
         msUserSelect: 'none',
+        // Ensure proper height in landscape mode
+        '@media (orientation: landscape) and (max-width: 900px)': {
+          minHeight: '100%',
+        },
         '& .rpv-core__viewer': {
-          '--scale-factor': '1',
+          height: '100%',
+        },
+        '& .rpv-core__inner-pages': {
+          height: '100% !important',
         },
       }}
     >
@@ -233,7 +241,13 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
 
       {!error && fileUrl && (
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-          <Box sx={{ flex: 1, overflow: 'hidden' }}>
+          <Box sx={{ 
+            flex: 1, 
+            overflow: 'hidden',
+            minHeight: 0, // Important for flex child to shrink properly
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
             <Viewer
               fileUrl={fileUrl}
               defaultScale={SpecialZoomLevel.PageWidth}
@@ -258,6 +272,16 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
                 flexDirection: 'column',
                 gap: 1,
                 zIndex: 10,
+                // Compact controls in landscape mode
+                '@media (orientation: landscape) and (max-width: 900px)': {
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  py: 0.5,
+                  px: 2,
+                },
+                flexShrink: 0, // Prevent controls from shrinking
               }}
             >
               {/* Navigation row */}
@@ -346,7 +370,12 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
                 alignItems: 'center', 
                 justifyContent: 'center',
                 gap: 2,
-                pb: 1
+                pb: 1,
+                // In landscape, merge zoom into the same row
+                '@media (orientation: landscape) and (max-width: 900px)': {
+                  pb: 0,
+                  gap: 1,
+                },
               }}>
                 <ZoomOut>
                   {(props: any) => (
@@ -394,6 +423,7 @@ const MobilePDFViewer: React.FC<MobilePDFViewerProps> = ({ fileUrl, onContentRea
         <Portal>
           <Box
             sx={{
+              '--scale-factor': '1', // Required by PDF.js - must be on container or higher
               position: 'fixed',
               top: 0,
               left: 0,

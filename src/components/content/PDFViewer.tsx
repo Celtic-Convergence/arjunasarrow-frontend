@@ -118,6 +118,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady, user }) 
   return (
     <Box
       sx={{
+        '--scale-factor': '1', // Required by PDF.js - must be on container or higher
         height: '100%',
         width: '100%',
         display: 'flex',
@@ -131,7 +132,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl, onContentReady, user }) 
         msUserSelect: 'none',
         '& .rpv-core__viewer': {
           height: '100%',
-          '--scale-factor': '1',
         },
         '& .rpv-core__page-layer': {
           userSelect: 'none !important',

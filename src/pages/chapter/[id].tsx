@@ -896,6 +896,11 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
                       background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
                       backdropFilter: 'blur(10px)',
                       height: { xs: '500px', sm: '600px', md: '600px' },
+                      // Use viewport height in landscape mode for better mobile experience
+                      '@media (orientation: landscape) and (max-width: 900px)': {
+                        height: '70vh',
+                        minHeight: '300px',
+                      },
                       width: '100%',
                       position: 'relative'
                     }}>
