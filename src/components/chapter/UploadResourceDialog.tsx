@@ -82,7 +82,7 @@ export const UploadResourceDialog: React.FC<UploadResourceDialogProps> = ({
     }
   }, [])
 
-  const validateFile = (file: File): string | null => {
+  const validateFile = useCallback((file: File): string | null => {
     const maxSizePdf = (uploadConfig?.maxFileSizes?.pdf || 25) * 1024 * 1024
     const maxSizeVideo = (uploadConfig?.maxFileSizes?.video || 2048) * 1024 * 1024
 
@@ -99,9 +99,9 @@ export const UploadResourceDialog: React.FC<UploadResourceDialogProps> = ({
     }
 
     return null
-  }
+  }, [uploadConfig?.maxFileSizes?.pdf, uploadConfig?.maxFileSizes?.video])
 
-  const handleFiles = (newFiles: File[]): void => {
+  const handleFiles = useCallback((newFiles: File[]): void => {
     const validFiles: FileWithQuality[] = []
     const errors: string[] = []
 
@@ -182,7 +182,7 @@ export const UploadResourceDialog: React.FC<UploadResourceDialogProps> = ({
     } else {
       setFiles(prev => [...prev, ...validFiles])
     }
-  }
+  }, [files, error, validateFile, setError])
 
   const handleDrop = useCallback((e: React.DragEvent): void => {
     e.preventDefault()

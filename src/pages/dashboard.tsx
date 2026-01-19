@@ -401,10 +401,12 @@ const Dashboard: NextPageWithLayout = () => {
   }
 
   // Load groups data when tab changes
+  // Load groups data when tab changes
   React.useEffect(() => {
     if (tabValue === 3 && isAdmin && groupsData.length === 0) {
       handleLoadGroupsData()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabValue, isAdmin])
   
   // Set default notification course when courses are loaded
