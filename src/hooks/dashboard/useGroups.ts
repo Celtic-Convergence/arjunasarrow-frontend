@@ -1,6 +1,49 @@
 import { useState, useCallback } from 'react'
 import { useApiClient } from './useApiClient'
 
+export interface GroupStatus {
+  groupName: string
+  status: 'ACTIVE' | 'INACTIVE'
+  createdAt: string | null
+  updatedAt: string | null
+  deactivatedAt: string | null
+}
+
+export interface MigrationFailure {
+  username: string
+  step: 'remove' | 'add' | 'grant'
+  error: string
+}
+
+export interface MigrationUserInfo {
+  username: string
+  email?: string
+  status: string
+  enabled: boolean
+  givenName?: string
+  familyName?: string
+}
+
+export interface BatchMigrateResult {
+  sourceGroup: string
+  targetGroup: string
+  dryRun: boolean
+  sourceDeactivated: boolean
+  deactivationError?: string
+  totalUsers: number
+  migrated: number
+  failed: number
+  failures: MigrationFailure[]
+  users?: MigrationUserInfo[]
+}
+
+export interface BatchMigrateRequest {
+  sourceGroup: string
+  targetGroup: string
+  deactivateSource?: boolean
+  dryRun?: boolean
+}
+
 export const useGroups = (): {
   availableGroups: string[] | null
   loadingGroups: boolean
@@ -10,6 +53,9 @@ export const useGroups = (): {
   removeUserFromGroup: (userId: string, groupName: string) => Promise<any>
   loadGroupsData: () => Promise<any>
   loadGroupUsers: (groupName: string) => Promise<any>
+  getGroupStatus: (groupName: string) => Promise<GroupStatus>
+  updateGroupStatus: (groupName: string, status: 'ACTIVE' | 'INACTIVE') => Promise<GroupStatus>
+  batchMigrate: (request: BatchMigrateRequest) => Promise<BatchMigrateResult>
 } => {
   const { apiCall } = useApiClient()
   const [availableGroups, setAvailableGroups] = useState<string[]>([])
@@ -60,6 +106,30 @@ export const useGroups = (): {
     return apiResponse.data.users
   }, [apiCall])
 
+  const getGroupStatus = useCallback(async (groupName: string): Promise<GroupStatus> => {
+    const apiResponse = await apiCall(`/admin/groups/${encodeURIComponent(groupName)}/status`)
+    return apiResponse.data
+  }, [apiCall])
+
+  const updateGroupStatus = useCallback(async (groupName: string, status: 'ACTIVE' | 'INACTIVE'): Promise<GroupStatus> => {
+    const apiResponse = await apiCall(
+      `/admin/groups/${encodeURIComponent(groupName)}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      }
+    )
+    return apiResponse.data
+  }, [apiCall])
+
+  const batchMigrate = useCallback(async (request: BatchMigrateRequest): Promise<BatchMigrateResult> => {
+    const apiResponse = await apiCall('/admin/migrate-batch', {
+      method: 'POST',
+      body: JSON.stringify(request)
+    })
+    return apiResponse.data
+  }, [apiCall])
+
   return {
     availableGroups,
     loadingGroups,
@@ -68,6 +138,9 @@ export const useGroups = (): {
     addUserToGroup,
     removeUserFromGroup,
     loadGroupsData,
-    loadGroupUsers
+    loadGroupUsers,
+    getGroupStatus,
+    updateGroupStatus,
+    batchMigrate
   }
 }

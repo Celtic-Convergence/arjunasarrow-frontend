@@ -28,6 +28,7 @@ interface CompletedFile {
 export const useChapterUpload = (): {
   uploadFiles: (chapterId: string, files: FileToUpload[], onProgress?: (fileId: string, progress: number) => void) => Promise<boolean>
   deleteResource: (chapterId: string, resourceId: string) => Promise<void>
+  toggleResourceVisibility: (chapterId: string, resourceId: string, visible: boolean) => Promise<{ resourceId: string; visible: boolean; filename: string; type: string }>
   uploading: boolean
   uploadProgress: { [key: string]: number }
   error: string | null
@@ -134,6 +135,20 @@ export const useChapterUpload = (): {
     }
   }, [apiCall])
 
+  // Toggle resource visibility
+  const toggleResourceVisibility = useCallback(async (chapterId: string, resourceId: string, visible: boolean) => {
+    try {
+      const response = await apiCall(`/chapters/${chapterId}/resources/${resourceId}/visibility`, {
+        method: 'PATCH',
+        body: JSON.stringify({ visible })
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error toggling resource visibility:', error)
+      throw error
+    }
+  }, [apiCall])
+
   // Main upload function
   const uploadFiles = useCallback(async (
     chapterId: string,
@@ -185,6 +200,7 @@ export const useChapterUpload = (): {
   return {
     uploadFiles,
     deleteResource,
+    toggleResourceVisibility,
     uploading,
     uploadProgress,
     error,

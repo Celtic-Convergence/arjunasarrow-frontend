@@ -19,6 +19,9 @@ import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AddIcon from '@mui/icons-material/Add'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import SchoolIcon from '@mui/icons-material/School'
+import EmailIcon from '@mui/icons-material/Email'
 import { CourseCard, CourseStatistics, BookCard } from '../courses'
 import { CourseWithBooks } from '../types'
 import { useRouter } from 'next/router'
@@ -28,6 +31,7 @@ interface CoursesTabProps {
   loading: boolean
   error: string | null
   isAdmin: boolean
+  isEnrollmentEnded?: boolean
   studentCount: number
   availableClasses: string[]
   availableBoards: string[]
@@ -35,6 +39,7 @@ interface CoursesTabProps {
   onUpdateChapterTitle?: (courseId: string, bookId: string, chapterId: string, title: string) => Promise<void>
   onCreateBook?: (courseId: string) => void
   onCreateChapter?: (courseId: string, bookId: string) => void
+  onRetry?: () => void
 }
 
 export const CoursesTab: React.FC<CoursesTabProps> = ({
@@ -42,13 +47,15 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
   loading,
   error,
   isAdmin,
+  isEnrollmentEnded,
   studentCount,
   availableClasses,
   availableBoards,
   onUpdateBookTitle,
   onUpdateChapterTitle,
   onCreateBook,
-  onCreateChapter
+  onCreateChapter,
+  onRetry
 }) => {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
@@ -106,6 +113,94 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
             </Grid>
           ))}
         </Grid>
+      </Box>
+    )
+  }
+
+  if (isEnrollmentEnded) {
+    return (
+      <Box sx={{
+        textAlign: 'center',
+        py: { xs: 6, sm: 10 },
+        px: { xs: 3, sm: 6 },
+        maxWidth: 520,
+        mx: 'auto'
+      }}>
+        <Box sx={{
+          width: 88,
+          height: 88,
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(245, 158, 11, 0.15) 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mx: 'auto',
+          mb: 3
+        }}>
+          <SchoolIcon sx={{ fontSize: 44, color: '#d97706' }} />
+        </Box>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 700,
+            mb: 1.5,
+            color: 'text.primary'
+          }}
+        >
+          Enrollment Period Ended
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            color: 'text.secondary',
+            mb: 4,
+            lineHeight: 1.7
+          }}
+        >
+          Your enrollment period for this course has concluded.
+          To renew your access or enroll in a new term, please contact our support team.
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {onRetry && (
+            <Button
+              variant="contained"
+              startIcon={<RefreshIcon />}
+              onClick={onRetry}
+              sx={{
+                backgroundColor: '#d97706',
+                color: 'white',
+                px: 4,
+                py: 1.2,
+                borderRadius: 3,
+                fontWeight: 600,
+                '&:hover': {
+                  backgroundColor: '#b45309',
+                }
+              }}
+            >
+              Check Again
+            </Button>
+          )}
+          <Button
+            variant="outlined"
+            startIcon={<EmailIcon />}
+            href="mailto:arjunasarrowldh@gmail.com"
+            sx={{
+              borderColor: '#d97706',
+              color: '#d97706',
+              px: 4,
+              py: 1.2,
+              borderRadius: 3,
+              fontWeight: 600,
+              '&:hover': {
+                borderColor: '#b45309',
+                backgroundColor: 'rgba(217, 119, 6, 0.06)',
+              }
+            }}
+          >
+            Contact Support
+          </Button>
+        </Box>
       </Box>
     )
   }

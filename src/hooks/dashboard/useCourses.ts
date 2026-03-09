@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useApiClient } from './useApiClient'
+import { useApiClient, ApiError } from './useApiClient'
 import { CourseWithBooks } from '@/components/dashboard/types'
 
 export const useCourses = (user: any): {
@@ -7,6 +7,7 @@ export const useCourses = (user: any): {
   loadingCourses: boolean
   loadingError: string | null
   isAdmin: boolean
+  isEnrollmentEnded: boolean
   loadCourseData: () => Promise<void>
   createBook: (courseId: string, bookData: { 
     title: string
@@ -25,10 +26,12 @@ export const useCourses = (user: any): {
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [loadingError, setLoadingError] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isEnrollmentEnded, setIsEnrollmentEnded] = useState(false)
 
   const loadCourseData = useCallback(async (): Promise<void> => {
     setLoadingCourses(true)
     setLoadingError(null)
+    setIsEnrollmentEnded(false)
     
     try {
       const apiResponse = await apiCall('/course')
@@ -122,8 +125,11 @@ export const useCourses = (user: any): {
       
       setCoursesWithContent(transformedCourses)
     } catch (error) {
-      // Error loading course data
-      setLoadingError(error instanceof Error ? error.message : 'Failed to load course data')
+      if (error instanceof ApiError && error.code === 'GROUP_INACTIVE') {
+        setIsEnrollmentEnded(true)
+      } else {
+        setLoadingError(error instanceof Error ? error.message : 'Failed to load course data')
+      }
     } finally {
       setLoadingCourses(false)
     }
@@ -222,6 +228,7 @@ export const useCourses = (user: any): {
     loadingCourses,
     loadingError,
     isAdmin,
+    isEnrollmentEnded,
     loadCourseData,
     createBook,
     updateBookTitle,
