@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,18 @@ export const PurchaseSuccessDialog: React.FC<PurchaseSuccessDialogProps> = ({
   const [countdown, setCountdown] = useState(5)
   const [progress, setProgress] = useState(0)
 
+  /**
+   * Handles redirect based on user type
+   */
+  const handleRedirect = useCallback((): void => {
+    if (isGuestPurchase) {
+      router.push('/login')
+    } else {
+      router.push('/dashboard')
+    }
+    onClose()
+  }, [isGuestPurchase, router, onClose])
+
   useEffect(() => {
     if (!open) return
 
@@ -80,19 +92,7 @@ export const PurchaseSuccessDialog: React.FC<PurchaseSuccessDialogProps> = ({
       clearInterval(countdownInterval)
       clearInterval(progressInterval)
     }
-  }, [open])
-
-  /**
-   * Handles redirect based on user type
-   */
-  const handleRedirect = (): void => {
-    if (isGuestPurchase) {
-      router.push('/login')
-    } else {
-      router.push('/dashboard')
-    }
-    onClose()
-  }
+  }, [open, handleRedirect])
 
   /**
    * Handles manual close (cancels auto-redirect)

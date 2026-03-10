@@ -32,6 +32,8 @@ import OndemandVideoIcon from '@mui/icons-material/OndemandVideo'
 import DeleteIcon from '@mui/icons-material/Delete'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import { useChapterUpload } from '@/hooks/useChapterUpload'
 
 interface ExistingFile {
@@ -39,6 +41,7 @@ interface ExistingFile {
   filename: string
   uploadedAt: string
   quality?: string
+  visible?: boolean
 }
 
 interface ResourceManagementProps {
@@ -49,7 +52,7 @@ interface ResourceManagementProps {
     videos: ExistingFile[]
   }
   onUploadClick: () => void
-  _onResourcesChange: () => void
+  onResourcesChange: () => void
 }
 
 export const ResourceManagement: React.FC<ResourceManagementProps> = ({
@@ -57,7 +60,7 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({
   chapterId,
   existingFiles,
   onUploadClick,
-  _onResourcesChange
+  onResourcesChange
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -66,8 +69,11 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [speedDialOpen, setSpeedDialOpen] = useState(false)
-  
-  const { deleteResource } = useChapterUpload()
+  const [togglingVisibility, setTogglingVisibility] = useState<Set<string>>(new Set())
+  const [visibilityError, setVisibilityError] = useState<string | null>(null)
+  const [localVisibility, setLocalVisibility] = useState<Record<string, boolean>>({})
+
+  const { deleteResource, toggleResourceVisibility } = useChapterUpload()
 
   const handleDeleteClick = (resource: ExistingFile, type: 'pdf' | 'video'): void => {
     setResourceToDelete({
@@ -102,6 +108,39 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({
     setDeleteDialogOpen(false)
     setResourceToDelete(null)
     setDeleteError(null)
+  }
+
+  const getResourceVisibility = (resource: ExistingFile): boolean => {
+    if (resource.id in localVisibility) return localVisibility[resource.id]
+    return resource.visible !== false
+  }
+
+  const handleToggleVisibility = async (resource: ExistingFile): Promise<void> => {
+    const currentVisible = getResourceVisibility(resource)
+    const newVisible = !currentVisible
+
+    // Prevent concurrent toggles on the same resource
+    if (togglingVisibility.has(resource.id)) return
+
+    // Optimistic update
+    setLocalVisibility(prev => ({ ...prev, [resource.id]: newVisible }))
+    setTogglingVisibility(prev => new Set(prev).add(resource.id))
+    setVisibilityError(null)
+
+    try {
+      await toggleResourceVisibility(chapterId, resource.id, newVisible)
+      onResourcesChange()
+    } catch (error) {
+      // Revert on failure
+      setLocalVisibility(prev => ({ ...prev, [resource.id]: currentVisible }))
+      setVisibilityError(`Failed to ${newVisible ? 'show' : 'hide'} "${resource.filename}"`)
+    } finally {
+      setTogglingVisibility(prev => {
+        const next = new Set(prev)
+        next.delete(resource.id)
+        return next
+      })
+    }
   }
 
   const formatDate = (dateString: string): string => {
@@ -170,6 +209,16 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({
             )}
           </Box>
 
+          {visibilityError && (
+            <Alert
+              severity="error"
+              onClose={() => setVisibilityError(null)}
+              sx={{ mb: 2 }}
+            >
+              {visibilityError}
+            </Alert>
+          )}
+
           {totalResources === 0 ? (
             <Alert 
               severity="info" 
@@ -209,52 +258,103 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({
                     border: '1px solid',
                     borderColor: 'divider'
                   }}>
-                    {existingFiles.pdfs.map((pdf, index) => (
-                      <React.Fragment key={pdf.id}>
-                        {index > 0 && <Divider />}
-                        <ListItem sx={{ py: { xs: 1, sm: 1.5 } }}>
-                          <ListItemIcon>
-                            <PictureAsPdfIcon color="error" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Typography 
-                                variant="body2" 
-                                noWrap 
-                                sx={{ 
-                                  maxWidth: { xs: 150, sm: 300, md: 400 },
-                                  fontWeight: 500
-                                }}
-                              >
-                                {pdf.filename}
-                              </Typography>
+                    {existingFiles.pdfs.map((pdf, index) => {
+                      const isVisible = getResourceVisibility(pdf)
+                      const isToggling = togglingVisibility.has(pdf.id)
+                      return (
+                        <React.Fragment key={pdf.id}>
+                          {index > 0 && <Divider />}
+                          <ListItem sx={{
+                            py: { xs: 1, sm: 1.5 },
+                            opacity: isVisible ? 1 : 0.6,
+                            transition: 'opacity 0.2s ease',
+                            '@media (prefers-reduced-motion: reduce)': {
+                              transition: 'none'
                             }
-                            secondary={
-                              <Typography variant="caption" color="text.secondary">
-                                Uploaded {formatDate(pdf.uploadedAt)}
-                              </Typography>
-                            }
-                          />
-                          <ListItemSecondaryAction>
-                            <Tooltip title="Delete resource">
-                              <IconButton
-                                edge="end"
-                                onClick={() => handleDeleteClick(pdf, 'pdf')}
-                                size="small"
-                                sx={{ 
-                                  color: 'error.main',
-                                  '&:hover': {
-                                    backgroundColor: 'error.lighter'
-                                  }
-                                }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </ListItemSecondaryAction>
-                        </ListItem>
-                      </React.Fragment>
-                    ))}
+                          }}>
+                            <ListItemIcon>
+                              <PictureAsPdfIcon color={isVisible ? 'error' : 'disabled'} />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography
+                                    variant="body2"
+                                    noWrap
+                                    sx={{
+                                      maxWidth: { xs: 100, sm: 250, md: 350 },
+                                      fontWeight: 500
+                                    }}
+                                  >
+                                    {pdf.filename}
+                                  </Typography>
+                                  {!isVisible && (
+                                    <Chip
+                                      label="Hidden"
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                                        color: 'error.main',
+                                        fontWeight: 600,
+                                        height: 20
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              }
+                              secondary={
+                                <Typography variant="caption" color="text.secondary">
+                                  Uploaded {formatDate(pdf.uploadedAt)}
+                                </Typography>
+                              }
+                            />
+                            <ListItemSecondaryAction>
+                              <Tooltip title={isVisible ? 'Hide from students' : 'Show to students'}>
+                                <span>
+                                  <IconButton
+                                    onClick={() => handleToggleVisibility(pdf)}
+                                    size="small"
+                                    disabled={isToggling}
+                                    aria-label={isVisible ? `Hide ${pdf.filename} from students` : `Show ${pdf.filename} to students`}
+                                    sx={{
+                                      mr: 0.5,
+                                      color: isVisible ? 'success.main' : 'text.disabled',
+                                      '&:hover': {
+                                        backgroundColor: isVisible ? 'rgba(46, 125, 50, 0.08)' : 'rgba(0, 0, 0, 0.04)'
+                                      }
+                                    }}
+                                  >
+                                    {isToggling ? (
+                                      <CircularProgress size={20} />
+                                    ) : isVisible ? (
+                                      <VisibilityIcon />
+                                    ) : (
+                                      <VisibilityOffIcon />
+                                    )}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title={`Delete ${pdf.filename}`}>
+                                <IconButton
+                                  edge="end"
+                                  aria-label={`Delete ${pdf.filename}`}
+                                  onClick={() => handleDeleteClick(pdf, 'pdf')}
+                                  size="small"
+                                  sx={{
+                                    color: 'error.main',
+                                    '&:hover': {
+                                      backgroundColor: 'error.lighter'
+                                    }
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        </React.Fragment>
+                      )
+                    })}
                   </List>
                 </Box>
               )}
@@ -281,66 +381,115 @@ export const ResourceManagement: React.FC<ResourceManagementProps> = ({
                     border: '1px solid',
                     borderColor: 'divider'
                   }}>
-                    {existingFiles.videos.map((video, index) => (
-                      <React.Fragment key={video.id}>
-                        {index > 0 && <Divider />}
-                        <ListItem sx={{ py: { xs: 1, sm: 1.5 } }}>
-                          <ListItemIcon>
-                            <OndemandVideoIcon color="primary" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography 
-                                  variant="body2" 
-                                  noWrap 
-                                  sx={{ 
-                                    maxWidth: { xs: 120, sm: 250, md: 350 },
-                                    fontWeight: 500
+                    {existingFiles.videos.map((video, index) => {
+                      const isVisible = getResourceVisibility(video)
+                      const isToggling = togglingVisibility.has(video.id)
+                      return (
+                        <React.Fragment key={video.id}>
+                          {index > 0 && <Divider />}
+                          <ListItem sx={{
+                            py: { xs: 1, sm: 1.5 },
+                            opacity: isVisible ? 1 : 0.6,
+                            transition: 'opacity 0.2s ease',
+                            '@media (prefers-reduced-motion: reduce)': {
+                              transition: 'none'
+                            }
+                          }}>
+                            <ListItemIcon>
+                              <OndemandVideoIcon color={isVisible ? 'primary' : 'disabled'} />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography
+                                    variant="body2"
+                                    noWrap
+                                    sx={{
+                                      maxWidth: { xs: 80, sm: 200, md: 300 },
+                                      fontWeight: 500
+                                    }}
+                                  >
+                                    {video.filename}
+                                  </Typography>
+                                  {video.quality && (
+                                    <Chip
+                                      label={video.quality}
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                        color: '#667eea',
+                                        fontWeight: 600,
+                                        height: 20
+                                      }}
+                                    />
+                                  )}
+                                  {!isVisible && (
+                                    <Chip
+                                      label="Hidden"
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                                        color: 'error.main',
+                                        fontWeight: 600,
+                                        height: 20
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              }
+                              secondary={
+                                <Typography variant="caption" color="text.secondary">
+                                  Uploaded {formatDate(video.uploadedAt)}
+                                </Typography>
+                              }
+                            />
+                            <ListItemSecondaryAction>
+                              <Tooltip title={isVisible ? 'Hide from students' : 'Show to students'}>
+                                <span>
+                                  <IconButton
+                                    onClick={() => handleToggleVisibility(video)}
+                                    size="small"
+                                    disabled={isToggling}
+                                    aria-label={isVisible ? `Hide ${video.filename} from students` : `Show ${video.filename} to students`}
+                                    sx={{
+                                      mr: 0.5,
+                                      color: isVisible ? 'success.main' : 'text.disabled',
+                                      '&:hover': {
+                                        backgroundColor: isVisible ? 'rgba(46, 125, 50, 0.08)' : 'rgba(0, 0, 0, 0.04)'
+                                      }
+                                    }}
+                                  >
+                                    {isToggling ? (
+                                      <CircularProgress size={20} />
+                                    ) : isVisible ? (
+                                      <VisibilityIcon />
+                                    ) : (
+                                      <VisibilityOffIcon />
+                                    )}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title={`Delete ${video.filename}`}>
+                                <IconButton
+                                  edge="end"
+                                  aria-label={`Delete ${video.filename}`}
+                                  onClick={() => handleDeleteClick(video, 'video')}
+                                  size="small"
+                                  sx={{
+                                    color: 'error.main',
+                                    '&:hover': {
+                                      backgroundColor: 'error.lighter'
+                                    }
                                   }}
                                 >
-                                  {video.filename}
-                                </Typography>
-                                {video.quality && (
-                                  <Chip 
-                                    label={video.quality} 
-                                    size="small" 
-                                    sx={{ 
-                                      backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                                      color: '#667eea',
-                                      fontWeight: 600,
-                                      height: 20
-                                    }}
-                                  />
-                                )}
-                              </Box>
-                            }
-                            secondary={
-                              <Typography variant="caption" color="text.secondary">
-                                Uploaded {formatDate(video.uploadedAt)}
-                              </Typography>
-                            }
-                          />
-                          <ListItemSecondaryAction>
-                            <Tooltip title="Delete resource">
-                              <IconButton
-                                edge="end"
-                                onClick={() => handleDeleteClick(video, 'video')}
-                                size="small"
-                                sx={{ 
-                                  color: 'error.main',
-                                  '&:hover': {
-                                    backgroundColor: 'error.lighter'
-                                  }
-                                }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </ListItemSecondaryAction>
-                        </ListItem>
-                      </React.Fragment>
-                    ))}
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        </React.Fragment>
+                      )
+                    })}
                   </List>
                 </Box>
               )}

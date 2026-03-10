@@ -84,6 +84,7 @@ interface PdfResource {
   id: string
   filename: string
   signedUrl: string
+  visible?: boolean
 }
 
 interface VideoResource {
@@ -91,6 +92,7 @@ interface VideoResource {
   filename: string
   quality: string
   signedUrl: string
+  visible?: boolean
 }
 
 interface ExistingFile {
@@ -98,6 +100,7 @@ interface ExistingFile {
   filename: string
   uploadedAt: string
   quality?: string
+  visible?: boolean
 }
 
 function TabPanel(props: TabPanelProps): JSX.Element {
@@ -256,15 +259,17 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
     }
   }, [currentUser, sessionToken])
 
-  // Group content by type using useMemo to prevent unnecessary recalculations
-  const pdfContents = useMemo(() => 
-    chapterData?.resources?.pdfs || [], 
-    [chapterData]
+  const isAdmin = chapterData?.isAdmin ?? false
+
+  // Group content by type, filtering hidden resources for students (defense-in-depth)
+  const pdfContents = useMemo(() =>
+    (chapterData?.resources?.pdfs || []).filter(p => isAdmin || p.visible !== false),
+    [chapterData, isAdmin]
   )
-  
-  const videoContents = useMemo(() => 
-    chapterData?.resources?.videos || [], 
-    [chapterData]
+
+  const videoContents = useMemo(() =>
+    (chapterData?.resources?.videos || []).filter(v => isAdmin || v.visible !== false),
+    [chapterData, isAdmin]
   )
 
   // Group videos by filename (without quality suffix)
@@ -626,7 +631,7 @@ const ChapterPage: NextPageWithLayout<ChapterPageProps> = () => {
               chapterId={chapterData.chapterId}
               existingFiles={chapterData.uploadConfig?.existingFiles}
               onUploadClick={() => setUploadDialogOpen(true)}
-              _onResourcesChange={refreshChapterData}
+              onResourcesChange={refreshChapterData}
             />
           )}
           

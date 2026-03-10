@@ -50,7 +50,9 @@ const Dashboard: NextPageWithLayout = () => {
     createBook,
     updateBookTitle,
     createChapter,
-    updateChapterTitle
+    updateChapterTitle,
+    isEnrollmentEnded,
+    loadCourseData
   } = useCourses(user)
   const { 
     users, 
@@ -72,7 +74,10 @@ const Dashboard: NextPageWithLayout = () => {
     addUserToGroup,
     removeUserFromGroup,
     loadGroupsData,
-    loadGroupUsers
+    loadGroupUsers,
+    getGroupStatus,
+    updateGroupStatus,
+    batchMigrate
   } = useGroups()
   const [loadingGroupUsers, setLoadingGroupUsers] = useState(false)
   
@@ -400,11 +405,20 @@ const Dashboard: NextPageWithLayout = () => {
     }
   }
 
+  // Load available groups when Users tab is active (for group filter dropdown)
+  React.useEffect(() => {
+    if (tabValue === 2 && isAdmin && (!availableGroups || availableGroups.length === 0)) {
+      loadAvailableGroups()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabValue, isAdmin])
+
   // Load groups data when tab changes
   React.useEffect(() => {
     if (tabValue === 3 && isAdmin && groupsData.length === 0) {
       handleLoadGroupsData()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabValue, isAdmin])
   
   // Set default notification course when courses are loaded
@@ -559,6 +573,7 @@ const Dashboard: NextPageWithLayout = () => {
                 loading={loadingCourses}
                 error={loadingError}
                 isAdmin={isAdmin}
+                isEnrollmentEnded={isEnrollmentEnded}
                 studentCount={studentCount}
                 availableClasses={availableClasses}
                 availableBoards={availableBoards}
@@ -566,6 +581,7 @@ const Dashboard: NextPageWithLayout = () => {
                 onUpdateChapterTitle={updateChapterTitle}
                 onCreateBook={handleOpenCreateBookDialog}
                 onCreateChapter={handleOpenCreateChapterDialog}
+                onRetry={loadCourseData}
               />
             </TabPanel>
             
@@ -597,6 +613,8 @@ const Dashboard: NextPageWithLayout = () => {
                   users={users}
                   loading={loadingUsers}
                   error={usersError}
+                  availableGroups={availableGroups || []}
+                  loadGroupUsers={loadGroupUsers}
                   onRefresh={loadUsers}
                   onInviteUser={() => setInviteDialogOpen(true)}
                   onUserClick={(user) => handleGetUserDetails(user.username)}
@@ -617,6 +635,9 @@ const Dashboard: NextPageWithLayout = () => {
                   error={groupsDataError}
                   onRefresh={handleLoadGroupsData}
                   onGroupClick={handleGroupClick}
+                  getGroupStatus={getGroupStatus}
+                  updateGroupStatus={updateGroupStatus}
+                  batchMigrate={batchMigrate}
                   selectedGroup={selectedGroupDetails}
                   groupUsers={groupUsersData}
                   loadingGroupUsers={loadingGroupUsers}
